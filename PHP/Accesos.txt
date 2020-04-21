@@ -1,0 +1,10 @@
+Acceso:
+usuario: marco.calleros@gmail.com
+clave: 123456
+
+MySQL:
+Servidor: "localhost" 
+Usuario: "c0examen"  
+Clave: "C@113r0$" 
+DB: "c0examen"
+
