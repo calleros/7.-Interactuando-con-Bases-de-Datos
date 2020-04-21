@@ -11,22 +11,21 @@ class EventsManager {
         let url = '../server/getEvents.php'
         $.ajax({
           url: url,
+          dataType: "json",
           cache: false,
           processData: false,
           contentType: false,
           type: 'GET',
           success: (data) =>{
-            //if (data.msg=="OK") {
-            if(data!=null){
-              this.poblarCalendario(data);
+            if (data.msg=="OK") {
+              this.poblarCalendario(data.eventos)
+            }else {
+              alert(data.estado)
+              window.location.href = 'index.html';
             }
-            //}else {
-              //alert(data.msg);
-              //window.location.href = 'index.html';
-            //}
           },
           error: function(){
-            alert("error en la comunicación con el servidor");
+            alert('Error JS-004 en la comunicación con el servidor')
           }
         })
 
@@ -39,7 +38,7 @@ class EventsManager {
         		center: 'title',
         		right: 'month,agendaWeek,basicDay'
         	},
-        	defaultDate: Date.getdate,
+        	defaultDate: '2018-01-01',
         	navLinks: true,
         	editable: true,
         	eventLimit: true,
@@ -80,10 +79,12 @@ class EventsManager {
         form_data.append('end_date', $('#end_date').val())
         form_data.append('end_hour', $('#end_hour').val())
         form_data.append('start_hour', $('#start_hour').val())
+        form_data.append('allDay', "false")
       }else {
         form_data.append('end_date', "")
         form_data.append('end_hour', "")
         form_data.append('start_hour', "")
+        form_data.append('allDay', "true")
       }
       $.ajax({
         url: '../server/new_event.php',
@@ -95,33 +96,29 @@ class EventsManager {
         type: 'POST',
         success: (data) =>{
           if (data.msg=="OK") {
-            alert('Se ha añadido el evento exitosamente')
             if (document.getElementById('allDay').checked) {
               $('.calendario').fullCalendar('renderEvent', {
-                id: data.Id,
                 title: $('#titulo').val(),
                 start: $('#start_date').val(),
                 allDay: true
               })
             }else {
               $('.calendario').fullCalendar('renderEvent', {
-                id: data.Id,
                 title: $('#titulo').val(),
                 start: $('#start_date').val()+" "+$('#start_hour').val(),
                 allDay: false,
                 end: $('#end_date').val()+" "+$('#end_hour').val()
               })
             }
-
-
-
-
+            alert(data.estado)
+              this.obtenerDataInicial()
+              window.location.href = 'main.html';
           }else {
-            alert(data.msg)
+            alert(data.estado)
           }
         },
         error: function(){
-          alert("error en la comunicación con el servidor");
+          alert('Error JS-001 en la comunicación con el servidor')
         }
       })
 
@@ -141,13 +138,14 @@ class EventsManager {
         type: 'POST',
         success: (data) =>{
           if (data.msg=="OK") {
-            alert('Se ha eliminado el evento exitosamente')
+            alert(data.estado)
+              this.obtenerDataInicial()
           }else {
-            alert(data.msg)
+            alert(data.estado)
           }
         },
         error: function(){
-          alert("error en la comunicación con el servidor");
+          alert('Error JS-003 en la comunicación con el servidor')
         }
       })
       $('.delete-btn').find('img').attr('src', "img/trash.png");
@@ -156,19 +154,13 @@ class EventsManager {
 
     actualizarEvento(evento) {
         let id = evento.id,
-            start = moment(evento.start).format('YYYY-MM-DD HH:mm:ss'),
-            end = moment(evento.end).format('YYYY-MM-DD HH:mm:ss'),
-            form_data = new FormData(),
-            start_date,
-            end_date,
-            start_hour,
-            end_hour
-
-        start_date = start.substr(0,10)
-        end_date = end.substr(0,10)
-        start_hour = start.substr(11,8)
-        end_hour = end.substr(11,8)
-
+          start = (evento.start == null)? "0000-00-00 00:00:00":moment(evento.start).format('YYYY-MM-DD HH:mm:ss'),
+          end = (evento.end == null)? "0000-00-00 00:00:00":moment(evento.end).format('YYYY-MM-DD HH:mm:ss'),
+          start_date = start.substr(0,10),
+          end_date = end.substr(0,10),
+          start_hour = start.substr(11,8),
+          end_hour = end.substr(11,8),
+          form_data = new FormData();
 
         form_data.append('id', id)
         form_data.append('start_date', start_date)
@@ -186,13 +178,13 @@ class EventsManager {
           type: 'POST',
           success: (data) =>{
             if (data.msg=="OK") {
-              alert('Se ha actualizado el evento exitosamente')
+              alert(data.estado)
             }else {
-              alert(data.msg)
+              alert(data.estado)
             }
           },
           error: function(){
-            alert("error en la comunicación con el servidor");
+            alert("Error JS-002 en la comunicación con el servidor");
           }
         })
     }

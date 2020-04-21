@@ -1,24 +1,34 @@
 <?php
 
-    include 'conexionBD.php';
-    ObtenerEventos();
-    function ObtenerEventos(){
-       $Eventos="";
-       IniciarConexion();
-       $Consulta="select * from evento where IdUsuario=3";
-       $Resultado= $GLOBALS['Conexion']->query($Consulta);
-       while ($fila = mysqli_fetch_array($Resultado)){
-         if(empty($Eventos)){
-            $Eventos="[".json_encode(array("id"=> $fila['Id'], "title"=> $fila['Titulo'], "start"=> $fila['FechaInicio']." ". $fila['HoraInicio'], "allDay"=> $fila['DiaCompleto'], "end"=> $fila['FechaFinalizacion']." ".$fila['HoraFinalizacion']));
-          }else{
-            $Eventos=$Eventos.",".json_encode(array("id"=> $fila['Id'], "title"=> $fila['Titulo'], "start"=> $fila['FechaInicio']." ". $fila['HoraInicio'], "allDay"=> $fila['DiaCompleto'], "end"=> $fila['FechaFinalizacion']." ".$fila['HoraFinalizacion']));
-          }
-        }
-        if(!empty($Eventos)){
-          $Eventos=$Eventos."]";
-        }
-       DesactivarConexion();
-       echo $Eventos;
+  session_start();
+  require_once('conector.php');
 
+	$con = new ConectorBD('localhost','c0examen','C@113r0$');
+	$respuesta['msg'] = $con->iniciarConexion('c0examen');
+
+  	if ($respuesta['msg']=='OK') {
+      $consulta = $con->consultarDatos(['eventos'], ['eventos.*'], 'INNER JOIN usuarios ON usuarios.id=eventos.user_id AND usuarios.id='.$_SESSION['user_id']);
+
+      if ($consulta->num_rows <= 0) {
+      	$respuesta['eventos'] = [];
+    	}else{
+	  		$eventos = array();
+	  		while ($fila = $consulta->fetch_assoc()) {
+	  			$evento = array(
+            'id'=>$fila['id'],
+            'user_id'=>$fila['user_id'],
+            'title'=>$fila['titulo'],
+            'start'=>$fila['fecha_inicio'].' '.$fila['hora_inicio'],
+            'end'=>$fila['fecha_fin'].' '.$fila['hora_fin'],
+            'allday'=>$fila['dia_completo']);
+	      	array_push($eventos, $evento);
+	  		}
+	  		$respuesta['eventos'] = $eventos;
+    	}
+    }else{
+      $respuesta['estado'] = "Error PHP-004 en la comunicación con el servidor";
     }
- ?>
+
+  $con->cerrarConexion();
+	echo json_encode($respuesta);
+?>

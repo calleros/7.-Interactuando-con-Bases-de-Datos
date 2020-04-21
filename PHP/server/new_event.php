@@ -1,26 +1,30 @@
 <?php
 
-  include 'conexionBD.php';
-  $Titulo=$_POST['titulo'];
-  $FechaInicio=$_POST['start_date'];
-  $TodoDia=$_POST['allDay'];
-  $FechaFinal=$_POST['end_date'];
-  $HoraFinal=$_POST['end_hour'];
-  $HoraInicial=$_POST['start_hour'];
+	session_start();
+  require_once('conector.php');
 
-  CrearEvento();
+	  $datos = array(
+      'user_id' => $_SESSION['user_id'],
+  	  'titulo' => $_POST['titulo'],
+  	  'fecha_inicio' => $_POST['start_date'],
+      'hora_inicio' => $_POST['start_hour'],
+      'fecha_fin' => $_POST['end_date'],
+      'hora_fin' => $_POST['end_hour'],
+      'dia_completo' => $_POST['allDay']);
 
-  function CrearEvento(){
-    IniciarConexion();
-    $Consulta = "INSERT INTO evento (IdUsuario, Titulo, FechaInicio, HoraInicio, FechaFinalizacion, HoraFinalizacion, DiaCompleto)
-    VALUES (".$_COOKIE['IdUser'].", '".$GLOBALS['Titulo']."', '".$GLOBALS['FechaInicio']."', '".$GLOBALS['HoraInicial']."', '".$GLOBALS['FechaFinal']."', '".$GLOBALS['HoraFinal']."', '".$GLOBALS['TodoDia']."')";
+    $con = new ConectorBD('localhost','c0examen','C@113r0$');
+	  $respuesta['msg'] = $con->iniciarConexion('c0examen');
 
-    if ($GLOBALS['Conexion']->query($Consulta) === TRUE) {
-        echo json_encode(array("msg"=>"OK","Id"=>$GLOBALS['Conexion']->insert_id));
-    } else {
-        echo json_encode(array("msg"=>"Error Al registrar el evento"));
+  	if ($respuesta['msg'] == 'OK') {
+    	if($con->insertarRegistro('eventos', $datos)){
+        $respuesta['estado'] = "El evento se ha agregado exitosamente";
+	    }else {
+	      $respuesta['estado'] = "Hubo un error y los datos no han sido cargados";
+	    }
+  	}else {
+      $respuesta['estado'] = "Error PHP-001 en la comunicación con el servidor";
     }
-    DesactivarConexion();
-  }
 
- ?>
+    $con->cerrarConexion();
+  	echo json_encode($respuesta);
+?>

@@ -1,35 +1,26 @@
 <?php
 
-    $UserName=$_POST['username'];
-    $Password=$_POST['password'];
-    include 'conexionBD.php';
-    IniciarSesion();
-    function IniciarSesion(){
-       $Retorno="";
-       IniciarConexion();
-       $IdUser=0;
-       $Nombre="";
-       $Consulta="Select * from usuario where Username='".$GLOBALS['UserName']."'";
-       $Resultado= $GLOBALS['Conexion']->query($Consulta);
-       if(mysqli_num_rows($Resultado)==0){
-           $Retorno="Usuario o Contraseña incorrecta";
-       }else{
-       while ($fila = mysqli_fetch_array($Resultado)){
-            if(password_verify($GLOBALS['Password'],$fila['Password'])){
-               $IdUser=$fila['Id'];
-               $Nombre=$fila['Nombre'];
-               setcookie('IdUser',$IdUser);
-               setcookie('Nombre',$Nombre);
-               $Retorno="OK";
-            }
-            else{
-                $Retorno="Usuario o Contraseña incorrecta";
-            }
-        }
-       }
-       DesactivarConexion();
-       echo json_encode(array("msg"=>$Retorno));
-    }
+	require_once('conector.php');
 
+  $con = new ConectorBD('localhost','c0examen','C@113r0$');
+	$respuesta['msg'] = $con->iniciarConexion('c0examen');
 
- ?>
+  	if ($respuesta['msg']=='OK') {
+      	$consulta = $con->consultarDatos(['usuarios'], ['id', 'email', 'clave'], 'WHERE email="'.$_POST['username'].'"');
+      	if ($consulta->num_rows != 0) {
+        	$fila = $consulta->fetch_assoc();
+        	if (password_verify($_POST['password'], $fila['clave'])) {
+       			$respuesta['acceso'] = 'concedido';
+          	session_start();
+            $_SESSION['user_id'] = $fila['id'];
+          	$_SESSION['username'] = $fila['email'];
+        	}else{
+		        $respuesta['motivo'] = 'Contraseña incorrecta';
+	      	}
+    	}else{
+      		$respuesta['motivo'] = 'Email incorrecto';
+    	}
+  	}
+  	echo json_encode($respuesta);
+  	$con->cerrarConexion();
+?>

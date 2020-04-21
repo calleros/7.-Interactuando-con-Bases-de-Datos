@@ -1,20 +1,20 @@
 <?php
 
-  include 'conexionBD.php';
-  $ID=$_POST['id'];
+  	require_once('conector.php');
 
-  EliminarEvento();
+    $con = new ConectorBD('localhost','c0examen','C@113r0$');
+	  $respuesta['msg'] = $con->iniciarConexion('c0examen');
 
-  function EliminarEvento(){
-    IniciarConexion();
-    $Consulta = "delete from evento where Id=".$GLOBALS['ID'];
-
-    if ($GLOBALS['Conexion']->query($Consulta) === TRUE) {
-        echo json_encode(array("msg"=>"OK"));
-    } else {
-        echo json_encode(array("msg"=>"Error al eliminar el evento"));
-    }
-    DesactivarConexion();
-  }
-
- ?>
+  	if ($respuesta['msg'] == 'OK') {
+      $condicion = "id='".$_POST['id']."'";
+      if($con->eliminarRegistro('eventos', $condicion)){
+          $respuesta['estado'] = "El evento se ha eliminado exitosamente";
+      }else {
+          $respuesta['estado'] = "Hubo un error y los datos no se han eliminado";
+      }
+   	}else {
+    	$respuesta['estado'] = "Error E-003 en la comunicación con el servidor";
+  	}
+    $con->cerrarConexion();
+  	echo json_encode($respuesta);
+?>
