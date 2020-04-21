@@ -22,7 +22,7 @@
 	      $respuesta['estado'] = "Hubo un error y los datos no han sido cargados";
 	    }
   	}else {
-      $respuesta['estado'] = "Error PHP-001 en la comunicación con el servidor";
+      $respuesta['estado'] = "Error en la comunicación con el servidor";
     }
 
     $con->cerrarConexion();
